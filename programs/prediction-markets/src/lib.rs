@@ -1,21 +1,8 @@
-pub mod constants;
-pub mod error;
-pub mod instructions;
-pub mod state;
-
 use anchor_lang::prelude::*;
 
-pub use constants::*;
-pub use instructions::*;
-pub use state::*;
-
-declare_id!("5msyCUKpqLzmUjrWtBAJRGxTdfNsw9YZgPnV6Ei9yp58");
+declare_id!("2wanrg4dKZJW3Hzo6e8jBuxh2gDSVwz8JjnZA5SF7jXT");
 
 #[program]
 pub mod prediction_markets {
     use super::*;
-
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        initialize::handler(ctx)
-    }
 }

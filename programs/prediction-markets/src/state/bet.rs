@@ -1,0 +1,22 @@
+use anchor_lang::prelude::*;
+
+#[account]
+#[derive(InitSpace)]
+pub struct Bet {
+    pub creator: Pubkey,
+    #[max_len = 100]
+    pub bet_title: String,
+    #[max_len = 500]
+    pub oracle_info: String,
+    pub start_ts: i64,
+    pub end_ts: i64,
+    pub yes_pool: u64,
+    pub no_pool: u64,
+    pub total_yes: u64,
+    pub total_no: u64,
+    pub resolved: bool,
+    pub outcome: Outcome,
+    pub connector_weight: u32,
+}
+
+//Pick a weight based on how aggressively you want the marginal price to move. (connector_weight)
