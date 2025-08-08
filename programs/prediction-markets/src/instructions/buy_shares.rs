@@ -24,14 +24,14 @@ pub struct BuyShares<'info> {
         seeds = [b"yes_mint", bet.key().as_ref()],
         bump, 
     )]
-    pub yes_token_mint : Account<'info, Mint>,
+    pub yes_token_mint: Account<'info, Mint>,
 
     #[account(
         mut,
         seeds = [b"no_mint", bet.key().as_ref()],
         bump
     )]
-    pub no_token_mint : Account<'info, Mint>,
+    pub no_token_mint: Account<'info, Mint>,
 
     #[account(
         init_if_needed,
@@ -39,9 +39,23 @@ pub struct BuyShares<'info> {
         associated_token::mint = yes_token_mint,
         associated_token::authority = user
     )]
-    pub user_ata: Account<'info, TokenAccount>,
+    pub user_yes_ata: Account<'info, TokenAccount>,
+
+    #[account(
+        init_if_needed,
+        payer = user,
+        associated_token::mint = no_token_mint,
+        associated_token::authority = user
+    )]
+    pub user_no_ata: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
+}
+
+impl<'info> BuyShares<'info> {
+    pub fn process(ctx: Context<BuyShares>) -> Result<()> {
+        Ok(())
+    }
 }
