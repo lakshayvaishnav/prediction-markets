@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::{ Mint, Token };
 
 use crate::{ Bet, Outcome };
 use crate::error::BetError;
@@ -18,6 +19,28 @@ pub struct InitializeBet<'info> {
     )]
     pub bet: Account<'info, Bet>,
 
+    // Create YES token mint if it doesn't exist
+    #[account(
+        init,
+        payer = bet_creator,
+        seeds = [b"yes_mint", bet.key().as_ref()],
+        bump,
+        mint::decimals = 6,
+        mint::authority = bet // Bet PDA mints shares
+    )]
+    pub yes_token_mint: Account<'info, Mint>,
+
+    #[account(
+        init,
+        payer = bet_creator,
+        seeds = [b"no_mint", bet.key().as_ref()],
+        bump,
+        mint::decimals = 6,
+        mint::authority = bet
+    )]
+    pub no_token_mint: Account<'info, Mint>,
+
+    pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
@@ -50,7 +73,7 @@ impl<'info> InitializeBet<'info> {
             outcome: Outcome::Unresolved,
             connector_weight: connector_weight,
         });
-        
+
         Ok(())
     }
 }

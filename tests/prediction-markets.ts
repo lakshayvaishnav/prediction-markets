@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { PredictionMarkets } from "../target/types/prediction_markets";
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { getMint } from "@solana/spl-token"
 
 describe("prediction-markets", () => {
 
@@ -34,6 +35,16 @@ describe("prediction-markets", () => {
       program.programId
     )
 
+    const [yesMintPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("yes_mint"), betPda.toBuffer()],
+      program.programId
+    );
+
+    const [noMintPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("no_mint"), betPda.toBuffer()],
+      program.programId
+    );
+
     let tx = await program.methods
       .initializeBet(
         title,
@@ -44,7 +55,7 @@ describe("prediction-markets", () => {
         no_pool,
         connector_weight)
       .accounts({
-        betCreator: betCreator.publicKey
+        betCreator: betCreator.publicKey,
       }).signers([betCreator])
       .rpc()
 
@@ -56,6 +67,13 @@ describe("prediction-markets", () => {
     console.log("✅ yes pool : ", betAccount.yesPool);
     console.log("✅ no pool : ", betAccount.noPool);
     console.log("✅ connector weight : ", betAccount.connectorWeight);
+
+    const yesMint = getMint(provider.connection, yesMintPda);
+    const noMint = getMint(provider.connection, noMintPda);
+
+    console.log("✅bet pda : ", betPda);
+    console.log("✅yes mint : ", (await yesMint).mintAuthority);
+    console.log("✅no min : ", (await noMint).mintAuthority);
   });
 
   // ------------ helper function
