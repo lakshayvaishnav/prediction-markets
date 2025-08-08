@@ -23,7 +23,7 @@ pub struct InitializeBet<'info> {
 
 impl<'info> InitializeBet<'info> {
     pub fn process(
-        ctx: Context<InitializeBet>,
+        &mut self,
         title: String,
         oracle_info: String,
         start_ts: i64,
@@ -32,12 +32,12 @@ impl<'info> InitializeBet<'info> {
         no_pool: u64,
         connector_weight: u32
     ) -> Result<()> {
-        let bet = &mut ctx.accounts.bet;
+        let bet = &mut self.bet;
 
         require!(start_ts < end_ts, BetError::InvalidTime);
 
         bet.set_inner(Bet {
-            creator: ctx.accounts.bet_creator.key(),
+            creator: self.bet_creator.key(),
             bet_title: title,
             oracle_info: oracle_info,
             start_ts: start_ts,
@@ -50,7 +50,7 @@ impl<'info> InitializeBet<'info> {
             outcome: Outcome::Unresolved,
             connector_weight: connector_weight,
         });
-
+        
         Ok(())
     }
 }
