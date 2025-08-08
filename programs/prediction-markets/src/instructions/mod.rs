@@ -1,3 +1,3 @@
-pub mod initialize;
+pub mod initializeBet;
 
-pub use initialize::*;
+pub use initializeBet::*;
