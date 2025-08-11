@@ -1,7 +1,17 @@
-use anchor_lang::prelude::*;
-use anchor_spl::{ associated_token::AssociatedToken, token::{ Mint, Token, TokenAccount } };
+use anchor_lang::{ prelude::*, solana_program::{ system_instruction, program::invoke } };
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token::{ self, Mint, MintTo, Token, TokenAccount },
+};
 
-use crate::Bet;
+use crate::{
+    calculate_purchase_return,
+    Bet,
+    Side,
+    CONNECTOR_WEIGHT,
+    VIRTUAL_SOL_RESERVE,
+    VIRTUAL_TOKEN_RESERVE,
+};
 
 #[derive(Accounts)]
 #[instruction(title:String)]
@@ -55,19 +65,68 @@ pub struct BuyShares<'info> {
 }
 
 impl<'info> BuyShares<'info> {
-    pub fn process(ctx: Context<BuyShares>, direction: u8, deposit_amount : u64) -> Result<()> {
-
+    pub fn process(
+        ctx: Context<BuyShares>,
+        direction: u8,
+        deposit_amount: u64,
+        side: Side,
+        title: String,
+        bump: &BuySharesBumps
+    ) -> Result<()> {
         // TODO : deduct the platform fees.
-        let deposit_amount = deposit_amount as f64;
-        // buy shares
-        if direction == 0 {
-            // user wants to buy the shares.
-            // mint the shares to the user.
-            // transfer the sol to the bet contract.
-            // update the reserves for the shares and the sol.
-            
-            
+
+        let amount_token_out = calculate_purchase_return(
+            CONNECTOR_WEIGHT,
+            VIRTUAL_SOL_RESERVE,
+            VIRTUAL_TOKEN_RESERVE,
+            deposit_amount
+        );
+
+        // transfer the sol to the bet contract.
+        let ix = system_instruction::transfer(
+            &ctx.accounts.user.key(),
+            &ctx.accounts.bet.key(),
+            deposit_amount
+        );
+
+        invoke(&ix, &[ctx.accounts.user.to_account_info(), ctx.accounts.bet.to_account_info()])?;
+
+        // mint the shares to the user.
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+
+        let seeds: &[&[&[u8]]] = &[
+            &[ctx.accounts.bet_creator.key.as_ref(), title.as_bytes(), &[bump.bet]],
+        ];
+
+        match side {
+            Side::Yes => {
+                let cpi_context = CpiContext::new_with_signer(
+                    cpi_program,
+                    MintTo {
+                        authority: ctx.accounts.bet.to_account_info(),
+                        mint: ctx.accounts.yes_token_mint.to_account_info(),
+                        to: ctx.accounts.user_yes_ata.to_account_info(),
+                    },
+                    seeds
+                );
+
+                token::mint_to(cpi_context, amount_token_out)?;
+            }
+
+            Side::No => {
+                let accounts = MintTo {
+                    authority: ctx.accounts.bet.to_account_info(),
+                    mint: ctx.accounts.no_token_mint.to_account_info(),
+                    to: ctx.accounts.user_no_ata.to_account_info(),
+                };
+                let cpi_context = CpiContext::new_with_signer(cpi_program, accounts, seeds);
+                token::mint_to(cpi_context, amount_token_out)?;
+            }
         }
+
+        // update the reserves for the shares and the sol.
+        
+        // sell shares
 
         Ok(())
     }

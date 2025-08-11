@@ -2,6 +2,7 @@ pub use anchor_lang::prelude::*;
 
 // bancor's formaula implementation
 
+// TODO :  add the logic for fees here only.
 pub fn calculate_purchase_return(
     connector_weight: u32,
     virtual_sol_reserve: u64,
