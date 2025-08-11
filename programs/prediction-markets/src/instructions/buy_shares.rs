@@ -10,7 +10,8 @@ use crate::{
     Side,
     CONNECTOR_WEIGHT,
     VIRTUAL_SOL_RESERVE,
-    VIRTUAL_TOKEN_RESERVE,
+    VIRTUAL_TOKEN_NO_RESERVE,
+    VIRTUAL_TOKEN_YES_RESERVE,
 };
 
 #[derive(Accounts)]
@@ -75,13 +76,6 @@ impl<'info> BuyShares<'info> {
     ) -> Result<()> {
         // TODO : deduct the platform fees.
 
-        let amount_token_out = calculate_purchase_return(
-            CONNECTOR_WEIGHT,
-            VIRTUAL_SOL_RESERVE,
-            VIRTUAL_TOKEN_RESERVE,
-            deposit_amount
-        );
-
         // transfer the sol to the bet contract.
         let ix = system_instruction::transfer(
             &ctx.accounts.user.key(),
@@ -100,6 +94,13 @@ impl<'info> BuyShares<'info> {
 
         match side {
             Side::Yes => {
+                let amount_yes_token_out = calculate_purchase_return(
+                    CONNECTOR_WEIGHT,
+                    VIRTUAL_SOL_RESERVE,
+                    VIRTUAL_TOKEN_YES_RESERVE,
+                    deposit_amount
+                );
+
                 let cpi_context = CpiContext::new_with_signer(
                     cpi_program,
                     MintTo {
@@ -110,23 +111,35 @@ impl<'info> BuyShares<'info> {
                     seeds
                 );
 
-                token::mint_to(cpi_context, amount_token_out)?;
+                token::mint_to(cpi_context, amount_yes_token_out)?;
+
+                // update reserves
+                ctx.accounts.bet.total_yes = ctx.accounts.bet.total_yes
+                    .checked_add(amount_yes_token_out)
+                    .unwrap();
             }
 
             Side::No => {
+                let amount_no_token_out = calculate_purchase_return(
+                    CONNECTOR_WEIGHT,
+                    VIRTUAL_SOL_RESERVE,
+                    VIRTUAL_TOKEN_NO_RESERVE,
+                    deposit_amount
+                );
+
                 let accounts = MintTo {
                     authority: ctx.accounts.bet.to_account_info(),
                     mint: ctx.accounts.no_token_mint.to_account_info(),
                     to: ctx.accounts.user_no_ata.to_account_info(),
                 };
                 let cpi_context = CpiContext::new_with_signer(cpi_program, accounts, seeds);
-                token::mint_to(cpi_context, amount_token_out)?;
+                token::mint_to(cpi_context, amount_no_token_out)?;
+                // update reserves
+                ctx.accounts.bet.total_no = ctx.accounts.bet.total_no
+                    .checked_add(amount_no_token_out)
+                    .unwrap();
             }
         }
-
-        // update the reserves for the shares and the sol.
-        
-        // sell shares
 
         Ok(())
     }
