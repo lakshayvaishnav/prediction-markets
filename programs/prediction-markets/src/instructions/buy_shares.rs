@@ -66,6 +66,7 @@ impl<'info> BuyShares<'info> {
             // transfer the sol to the bet contract.
             // update the reserves for the shares and the sol.
             
+            
         }
 
         Ok(())

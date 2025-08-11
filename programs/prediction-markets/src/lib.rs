@@ -4,7 +4,9 @@ pub mod instructions;
 pub mod state;
 pub mod error;
 pub mod calc;
+pub mod constants;
 
+pub use constants::*;
 pub use calc::*;
 pub use error::*;
 pub use state::*;
