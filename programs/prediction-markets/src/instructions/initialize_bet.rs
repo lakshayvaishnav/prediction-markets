@@ -1,7 +1,14 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{ Mint, Token };
 
-use crate::{ Bet, Outcome };
+use crate::{
+    Bet,
+    Outcome,
+    VIRTUAL_NO_SOL_RESERVE,
+    VIRTUAL_TOKEN_NO_RESERVE,
+    VIRTUAL_TOKEN_YES_RESERVE,
+    VIRTUAL_YES_SOL_RESERVE,
+};
 use crate::error::BetError;
 
 #[derive(Accounts)]
@@ -65,8 +72,10 @@ impl<'info> InitializeBet<'info> {
             oracle_info: oracle_info,
             start_ts: start_ts,
             end_ts: end_ts,
-            yes_pool: yes_pool,
-            no_pool: no_pool,
+            virtual_yes_sol_reserve: VIRTUAL_YES_SOL_RESERVE,
+            virtual_no_sol_reserve: VIRTUAL_NO_SOL_RESERVE,
+            virtual_no_token_reserve: VIRTUAL_TOKEN_NO_RESERVE,
+            virtual_yes_token_reserve: VIRTUAL_TOKEN_YES_RESERVE,
             total_yes: 0,
             total_no: 0,
             resolved: false,

@@ -4,15 +4,7 @@ use anchor_spl::{
     token::{ self, Mint, MintTo, Token, TokenAccount },
 };
 
-use crate::{
-    calculate_purchase_return,
-    Bet,
-    Side,
-    CONNECTOR_WEIGHT,
-    VIRTUAL_SOL_RESERVE,
-    VIRTUAL_TOKEN_NO_RESERVE,
-    VIRTUAL_TOKEN_YES_RESERVE,
-};
+use crate::{ calculate_purchase_return, Bet, Side, CONNECTOR_WEIGHT };
 
 #[derive(Accounts)]
 #[instruction(title:String)]
@@ -68,7 +60,6 @@ pub struct BuyShares<'info> {
 impl<'info> BuyShares<'info> {
     pub fn process(
         ctx: Context<BuyShares>,
-        direction: u8,
         deposit_amount: u64,
         side: Side,
         title: String,
@@ -96,8 +87,8 @@ impl<'info> BuyShares<'info> {
             Side::Yes => {
                 let amount_yes_token_out = calculate_purchase_return(
                     CONNECTOR_WEIGHT,
-                    VIRTUAL_SOL_RESERVE,
-                    VIRTUAL_TOKEN_YES_RESERVE,
+                    ctx.accounts.bet.virtual_yes_sol_reserve,
+                    ctx.accounts.bet.virtual_yes_token_reserve,
                     deposit_amount
                 );
 
@@ -114,16 +105,29 @@ impl<'info> BuyShares<'info> {
                 token::mint_to(cpi_context, amount_yes_token_out)?;
 
                 // update reserves
+
+                // update total number of yes's
                 ctx.accounts.bet.total_yes = ctx.accounts.bet.total_yes
                     .checked_add(amount_yes_token_out)
                     .unwrap();
+
+                // update yes sol reserves for bonding curve
+                ctx.accounts.bet.virtual_yes_sol_reserve = ctx.accounts.bet.virtual_yes_sol_reserve
+                    .checked_add(deposit_amount)
+                    .unwrap();
+
+                // update yes token reserves for bonding curve
+                ctx.accounts.bet.virtual_yes_token_reserve =
+                    ctx.accounts.bet.virtual_yes_token_reserve
+                        .checked_add(amount_yes_token_out)
+                        .unwrap();
             }
 
             Side::No => {
                 let amount_no_token_out = calculate_purchase_return(
                     CONNECTOR_WEIGHT,
-                    VIRTUAL_SOL_RESERVE,
-                    VIRTUAL_TOKEN_NO_RESERVE,
+                    ctx.accounts.bet.virtual_yes_sol_reserve,
+                    ctx.accounts.bet.virtual_no_token_reserve,
                     deposit_amount
                 );
 
@@ -135,9 +139,22 @@ impl<'info> BuyShares<'info> {
                 let cpi_context = CpiContext::new_with_signer(cpi_program, accounts, seeds);
                 token::mint_to(cpi_context, amount_no_token_out)?;
                 // update reserves
+
+                // update total number of no's
                 ctx.accounts.bet.total_no = ctx.accounts.bet.total_no
                     .checked_add(amount_no_token_out)
                     .unwrap();
+
+                // update no sol reserves for bonding curve
+                ctx.accounts.bet.virtual_no_sol_reserve = ctx.accounts.bet.virtual_no_sol_reserve
+                    .checked_add(deposit_amount)
+                    .unwrap();
+
+                // update no token reserves
+                ctx.accounts.bet.virtual_no_token_reserve =
+                    ctx.accounts.bet.virtual_no_token_reserve
+                        .checked_add(amount_no_token_out)
+                        .unwrap();
             }
         }
 

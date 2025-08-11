@@ -6,3 +6,5 @@ features to implement
 5. after that add a metaplex to create tokens with images for buy / sell shares.
 6. probly add the imaage for both the tokne
 7. the price will be get deducted from the creator of that bet.
+8. implement slippage control
+9. add fees

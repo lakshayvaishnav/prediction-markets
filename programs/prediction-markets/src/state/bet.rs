@@ -2,7 +2,6 @@ use anchor_lang::prelude::*;
 
 use crate::Outcome;
 
-
 #[account]
 #[derive(InitSpace)]
 pub struct Bet {
@@ -15,6 +14,8 @@ pub struct Bet {
     pub end_ts: i64,
     pub virtual_yes_sol_reserve: u64,
     pub virtual_no_sol_reserve: u64,
+    pub virtual_yes_token_reserve: u64,
+    pub virtual_no_token_reserve: u64,
     pub total_yes: u64,
     pub total_no: u64,
     pub resolved: bool,
