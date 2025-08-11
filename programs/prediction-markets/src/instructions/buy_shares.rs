@@ -55,7 +55,19 @@ pub struct BuyShares<'info> {
 }
 
 impl<'info> BuyShares<'info> {
-    pub fn process(ctx: Context<BuyShares>) -> Result<()> {
+    pub fn process(ctx: Context<BuyShares>, direction: u8, deposit_amount : u64) -> Result<()> {
+
+        // TODO : deduct the platform fees.
+        let deposit_amount = deposit_amount as f64;
+        // buy shares
+        if direction == 0 {
+            // user wants to buy the shares.
+            // mint the shares to the user.
+            // transfer the sol to the bet contract.
+            // update the reserves for the shares and the sol.
+            
+        }
+
         Ok(())
     }
 }
