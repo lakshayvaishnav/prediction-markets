@@ -1,7 +1,5 @@
-pub mod bet;
-pub mod side;
-pub mod outcome;
+pub mod platform_config;
+pub mod market;
 
-pub use outcome::*;
-pub use side::*;
-pub use bet::*;
+pub use market::*;
+pub use platform_config::*;
