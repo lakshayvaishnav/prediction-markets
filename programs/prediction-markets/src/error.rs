@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-pub enum BetError {
+pub enum MarketError {
     #[msg("Bet start time must be before end time")]
     InvalidTime,
     #[msg("Betting window closed or not started")]
@@ -14,4 +14,8 @@ pub enum BetError {
     CannotResolveYet,
     #[msg("Bonding curve calculation error")]
     CurveError,
+    #[msg("Too many admings provided")]
+    TooManyAdmins,
+    #[msg("Admin already exists")]
+    AdminExist
 }

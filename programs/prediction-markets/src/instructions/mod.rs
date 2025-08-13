@@ -1,4 +1,4 @@
-pub mod initialize_bet;
+pub mod init_config;
 
 
-pub use initialize_bet::*;
+pub use init_config::*;

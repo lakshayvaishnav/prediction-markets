@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 
 #[account]
+#[derive(InitSpace)]
 pub struct PlatformConfig {
+    #[max_len(3)]
     pub admin: Vec<Pubkey>,
     pub fees: u16,
 
