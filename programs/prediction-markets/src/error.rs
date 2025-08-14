@@ -19,5 +19,11 @@ pub enum MarketError {
     #[msg("Admin already exists")]
     AdminExist,
     #[msg("Zero amount")]
-    ZeroAmount
+    ZeroAmount,
+    #[msg("Atithemetic overflow")]
+    ArithemeticOverflow,
+    #[msg("Arithmetic Underflow")]
+    ArithemeticUnderflow,
+    #[msg("Arithemetic Error")]
+    ArithemeticError,
 }
