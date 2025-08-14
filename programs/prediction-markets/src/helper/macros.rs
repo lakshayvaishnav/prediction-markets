@@ -1,4 +1,3 @@
-use crate::MarketError::*;
 
 #[macro_export]
 macro_rules! check_zero {

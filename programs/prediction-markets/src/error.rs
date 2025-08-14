@@ -32,4 +32,10 @@ pub enum MarketError {
     Unauthorized,
     #[msg("Invalid fees")]
     InvalidFees,
+    #[msg("parameter too low")]
+    ParameterTooLow,
+    #[msg("lenght limit exceeded")]
+    MaxLength,
+    #[msg("not enough amount")]
+    NotEnoughAmount
 }

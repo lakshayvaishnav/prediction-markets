@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use rust_decimal::{ Decimal, MathematicalOps };
+use rust_decimal::{Decimal, MathematicalOps};
 use crate::MarketError;
 
 use crate::{ add_or_sub, decimal_convo, div, mul, Market };

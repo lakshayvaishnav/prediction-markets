@@ -1,9 +1,14 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
+use anchor_lang::system_program::{ transfer, Transfer };
 use anchor_spl::metadata::Metadata;
 use anchor_spl::token_interface::{ Mint, TokenInterface };
 
-use crate::{ InitTokenArg, MargetArg, Market, PlatformConfig };
+use crate::{ decimal_convo, InitTokenArg, MargetArg, Market, MarketError, PlatformConfig };
 use crate::constants::*;
+use crate::{ check_admin };
+use rust_decimal::Decimal;
+use rust_decimal::prelude::ToPrimitive;
 
 #[derive(Accounts)]
 #[instruction(name: String)]
@@ -67,9 +72,64 @@ impl<'info> CreateMarket<'info> {
         arg: MargetArg,
         metadata_arg: InitTokenArg
     ) -> Result<()> {
+        check_admin!(self);
 
+        // CHECK : The liquidity parameter should pass the minimum threshold
+        require_gte!(arg.lsmr_b, MINIMUM_LMSR_B, MarketError::ParameterTooLow);
+
+        require!(arg.name.len() < 50, MarketError::MaxLength);
+
+        // initialize the lmsr
+        // initialize the market
+        self.market.init_market(Market {
+            market_name: arg.name,
+            description: arg.description,
+            initial_deposit: 0,
+
+            lsmr_b: arg.lsmr_b,
+            dead_line: arg.dead_line,
+
+            market_state: crate::MarketStatus::Active,
+            market_outcome: crate::MarketOutcome::NotResolved,
+
+            outcome_yes_shares: 0,
+            outcome_no_shares: 0,
+
+            mint_yes_bump: bump.mint_yes,
+            mint_no_bump: bump.mint_no,
+            market_vault_bump: bump.market_vault_account,
+            market_bump: bump.market,
+        });
+
+        // left to implement
+
+        todo!()
+    }
+
+    fn deposit_initial_amount(&mut self, lmsr: Market) -> Result<()> {
+        let accounts = Transfer {
+            from: self.admin.to_account_info(),
+            to: self.market_vault_account.to_account_info(),
+        };
+
+        let ctx = CpiContext::new(self.system_program.to_account_info(), accounts);
+
+        let decimal_amount = lmsr.cost_calculation(
+            &decimal_convo!(lmsr.outcome_yes_shares),
+            &decimal_convo!(lmsr.outcome_no_shares)
+        )?;
+
+        let amount = decimal_amount.trunc().to_u64().ok_or(MarketError::ArithemeticError)?;
+
+        require!(
+            self.admin.to_account_info().lamports() > amount * LAMPORTS_PER_SOL,
+            MarketError::NotEnoughAmount
+        );
+
+        transfer(ctx, amount * LAMPORTS_PER_SOL)?;
+
+        self.market.initial_deposit = amount;
         
-
         Ok(())
     }
 }
