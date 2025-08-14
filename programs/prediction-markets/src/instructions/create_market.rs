@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::metadata::Metadata;
 use anchor_spl::token_interface::{ Mint, TokenInterface };
 
-use crate::{ Market, PlatformConfig };
+use crate::{ InitTokenArg, MargetArg, Market, PlatformConfig };
 use crate::constants::*;
 
 #[derive(Accounts)]
@@ -61,13 +61,15 @@ pub struct CreateMarket<'info> {
 }
 
 impl<'info> CreateMarket<'info> {
-
-    pub fn save_market_data (
+    pub fn save_market_data(
         &mut self,
-        bump : CreateMarketBumps,
-        arg : MargetArg,
-        metadata_arg : InitTokenArg,
-        
-    )
+        bump: CreateMarketBumps,
+        arg: MargetArg,
+        metadata_arg: InitTokenArg
+    ) -> Result<()> {
 
+        
+
+        Ok(())
+    }
 }

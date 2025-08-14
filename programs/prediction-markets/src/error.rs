@@ -17,5 +17,7 @@ pub enum MarketError {
     #[msg("Too many admings provided")]
     TooManyAdmins,
     #[msg("Admin already exists")]
-    AdminExist
+    AdminExist,
+    #[msg("Zero amount")]
+    ZeroAmount
 }
