@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 use anchor_lang::system_program::{ transfer, Transfer };
-use anchor_spl::metadata::Metadata;
+use anchor_spl::metadata::mpl_token_metadata::instructions::CreateMetadataAccountV3;
+use anchor_spl::metadata::mpl_token_metadata::types::DataV2;
+use anchor_spl::metadata::{ create_metadata_accounts_v3, CreateMetadataAccountsV3, Metadata };
 use anchor_spl::token_interface::{ Mint, TokenInterface };
 
 use crate::{ decimal_convo, InitTokenArg, MargetArg, Market, MarketError, PlatformConfig };
@@ -59,6 +61,14 @@ pub struct CreateMarket<'info> {
     )]
     pub market_vault_account: SystemAccount<'info>, // Where bettor desposites there wagers
 
+    /// CHECK : yes metadata
+    #[account(mut)]
+    pub metadata_yes: UncheckedAccount<'info>,
+
+    /// CHECK : no metadata
+    #[account(mut)]
+    pub metadata_no: UncheckedAccount<'info>,
+
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
@@ -105,6 +115,46 @@ impl<'info> CreateMarket<'info> {
         let market_data = (*self.market).clone();
 
         self.deposit_initial_amount(market_data)?;
+
+        todo!()
+    }
+
+    fn create_metadata(&mut self, metadata_arg: InitTokenArg) -> Result<()> {
+        let seeds = &[PLATFORM_CONFIG, &[self.platform_config.config_bump]];
+        let signer_seeds = &[&seeds[..]];
+
+        let mint_yest_ctx = CpiContext::new_with_signer(
+            self.token_metadata_program.to_account_info(),
+            CreateMetadataAccountsV3 {
+                mint: self.mint_yes.to_account_info(),
+                payer: self.admin.to_account_info(),
+                update_authority: self.platform_config.to_account_info(),
+                mint_authority: self.platform_config.to_account_info(),
+                metadata: self.metadata_yes.to_account_info(),
+                rent: self.rent.to_account_info(),
+                system_program: self.system_program.to_account_info(),
+            },
+            signer_seeds
+        );
+
+        let mint_yes_data = DataV2 {
+            name: metadata_arg.yes_name.clone(),
+            uri: metadata_arg.yes_uri.clone(),
+            symbol: metadata_arg.yes_symbol.clone(),
+            seller_fee_basis_points: 0,
+            creators: None,
+            uses: None,
+            collection: None,
+        };
+
+        // mint yes transaction
+        create_metadata_accounts_v3(
+            mint_yest_ctx,
+            mint_yes_data,
+            true,
+            true,
+            None
+        )?;
 
         todo!()
     }
