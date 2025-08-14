@@ -1,4 +1,4 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{ prelude::*, system_program::{ transfer, Transfer } };
 use crate::{ Bettor, PlatformConfig, BETTOR_PROFILE, PLATFORM_CONFIG, BETTOR_WALLET };
 
 #[derive(Accounts)]
@@ -40,7 +40,7 @@ impl<'info> InitializeBettor<'info> {
     pub fn init_bettor(
         &mut self,
         name: Option<String>,
-        account_deposit: u64,
+        amount_deposit: u64,
         bumps: InitializeBettorBumps
     ) -> Result<()> {
         self.bettor_profile.set_inner(Bettor {
@@ -53,6 +53,28 @@ impl<'info> InitializeBettor<'info> {
             bettor_bump: bumps.bettor_profile,
         });
 
+        self.transfer_bettor_funds(amount_deposit)?;
+
         Ok(())
     }
+
+    fn transfer_bettor_funds(&mut self, amount_deposit: u64) -> Result<()> {
+        // transfer bettor funds to platfrom's wallet
+
+        // TODO : ADD MACRO to check amount != 0
+
+        let accounts = Transfer {
+            from: self.bettor.to_account_info(),
+            to: self.bettor_wallet_account.to_account_info(),
+        };
+
+        let ctx = CpiContext::new(self.system_program.to_account_info(), accounts);
+        transfer(ctx, amount_deposit)?;
+
+        // update the bettor balance
+        self.bettor_profile.balance = self.bettor_profile.balance.checked_add(amount_deposit).unwrap();
+        Ok(())    
+    }
+
 }
+
