@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 use anchor_lang::system_program::{ transfer, Transfer };
-use anchor_spl::metadata::mpl_token_metadata::instructions::CreateMetadataAccountV3;
 use anchor_spl::metadata::mpl_token_metadata::types::DataV2;
 use anchor_spl::metadata::{ create_metadata_accounts_v3, CreateMetadataAccountsV3, Metadata };
 use anchor_spl::token_interface::{ Mint, TokenInterface };

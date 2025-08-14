@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{ MarketOutcome, MarketStatus };
 
 #[account]
+#[derive(InitSpace)]
 pub struct Wager {
     pub market_pubkey: Pubkey,
 
