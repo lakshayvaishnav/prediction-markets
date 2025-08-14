@@ -102,6 +102,9 @@ impl<'info> CreateMarket<'info> {
         });
 
         // left to implement
+        let market_data = (*self.market).clone();
+
+        self.deposit_initial_amount(market_data)?;
 
         todo!()
     }
@@ -129,7 +132,7 @@ impl<'info> CreateMarket<'info> {
         transfer(ctx, amount * LAMPORTS_PER_SOL)?;
 
         self.market.initial_deposit = amount;
-        
+
         Ok(())
     }
 }
