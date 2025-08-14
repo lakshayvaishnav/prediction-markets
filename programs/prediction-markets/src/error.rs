@@ -26,4 +26,8 @@ pub enum MarketError {
     ArithemeticUnderflow,
     #[msg("Arithemetic Error")]
     ArithemeticError,
+    #[msg("Banned account")]
+    Banned,
+    #[msg("Unauthorized")]
+    Unauthorized,
 }
