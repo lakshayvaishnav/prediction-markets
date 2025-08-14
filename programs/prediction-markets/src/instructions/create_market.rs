@@ -148,13 +148,33 @@ impl<'info> CreateMarket<'info> {
         };
 
         // mint yes transaction
-        create_metadata_accounts_v3(
-            mint_yest_ctx,
-            mint_yes_data,
-            true,
-            true,
-            None
-        )?;
+        create_metadata_accounts_v3(mint_yest_ctx, mint_yes_data, true, true, None)?;
+
+        let mint_no_ctx = CpiContext::new_with_signer(
+            self.token_metadata_program.to_account_info(),
+            CreateMetadataAccountsV3 {
+                mint: self.mint_no.to_account_info(),
+                payer: self.admin.to_account_info(),
+                update_authority: self.platform_config.to_account_info(),
+                mint_authority: self.platform_config.to_account_info(),
+                metadata: self.metadata_no.to_account_info(),
+                rent: self.rent.to_account_info(),
+                system_program: self.system_program.to_account_info(),
+            },
+            signer_seeds
+        );
+
+        let mint_no_data = DataV2 {
+            name: metadata_arg.no_name.clone(),
+            uri: metadata_arg.no_uri.clone(),
+            symbol: metadata_arg.no_symbol.clone(),
+            seller_fee_basis_points: 0,
+            creators: None,
+            uses: None,
+            collection: None,
+        };
+
+        create_metadata_accounts_v3(mint_no_ctx, mint_no_data, true, true, None)?;
 
         todo!()
     }
