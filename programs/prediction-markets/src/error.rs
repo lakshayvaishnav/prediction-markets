@@ -30,4 +30,6 @@ pub enum MarketError {
     Banned,
     #[msg("Unauthorized")]
     Unauthorized,
+    #[msg("Invalid fees")]
+    InvalidFees,
 }

@@ -67,9 +67,58 @@ impl Market {
 
         let outcome_yes = div!(yes_shares, decimal_convo!(self.lsmr_b)).exp(); // e.powf(q1/b)
         let outcome_no = div!(no_shares, decimal_convo!(self.lsmr_b)).exp(); // e.powf(q2/b)
-        let outcome_sum = add_or_sub!(outcome_yes, outcome_no, true)?;
+        let outcome_sum = add_or_sub!(outcome_yes, outcome_no, true)?; // e.pow(q1/b) + e.powf(q2/b)
 
-        let cost = mul!(outcome_sum.ln(), decimal_convo!(self.lsmr_b));
+        let cost = mul!(outcome_sum.ln(), decimal_convo!(self.lsmr_b)); // b.ln(e.pow(q1/b) + e.pow(q2/b))
+
+        Ok(cost)
+    }
+
+    pub fn share_calculation(
+        &self,
+        is_buy: bool,
+        yes_shares: u64,
+        no_shares: u64,
+        fee_bps: u16
+    ) -> Result<Decimal> {
+        // Delta C = C2 - C1; (new cost function - current cost function)
+        let current_cost = self.cost_calculation(
+            &decimal_convo!(self.outcome_yes_shares),
+            &decimal_convo!(self.outcome_no_shares)
+        )?;
+
+        // q2 + q1(for buying) & q2 - q1 (for selling)
+        let new_yes = add_or_sub!(
+            decimal_convo!(self.outcome_yes_shares),
+            decimal_convo!(yes_shares),
+            is_buy
+        )?;
+
+        let new_no = add_or_sub!(
+            decimal_convo!(self.outcome_no_shares),
+            decimal_convo!(no_shares),
+            is_buy
+        )?;
+
+        let new_cost = self.cost_calculation(&new_yes, &new_no)?;
+
+        let delta_cost = match is_buy {
+            true => { add_or_sub!(new_cost, current_cost, false)? }
+            false => { add_or_sub!(current_cost, new_cost, true)? }
+        };
+
+        let share_cost = self.fees_calculation(fee_bps, delta_cost, is_buy)?;
+
+        Ok(share_cost)
+    }
+
+    fn fees_calculation(&self, fee_bps: u16, delta_cost: Decimal, is_buy: bool) -> Result<Decimal> {
+        require!(fee_bps < 10000 && fee_bps != 0, MarketError::InvalidFees);
+
+        let fee_multiplier = div!(decimal_convo!(fee_bps), decimal_convo!(10000));
+        let fee_amount = mul!(delta_cost, fee_multiplier);
+
+        let cost = add_or_sub!(delta_cost, fee_amount, is_buy)?;
 
         Ok(cost)
     }
