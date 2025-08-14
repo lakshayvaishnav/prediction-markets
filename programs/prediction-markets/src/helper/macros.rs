@@ -1,3 +1,5 @@
+use crate::MarketError::*;
+
 #[macro_export]
 macro_rules! check_zero {
     ($arr:expr) => {
@@ -16,7 +18,7 @@ macro_rules! add_or_sub {
                     None => err!(MarketError::ArithemeticOverflow)
                 }
             } else {
-                match $value_one.checked_sub($vaule.two) {
+                match $value_one.checked_sub($value_two) {
                     Some(val) => Ok(val),
                     None => err!(MarketError::ArithemeticUnderflow),
                 }
@@ -29,7 +31,7 @@ macro_rules! div {
     ($value_one:expr, $value_two:expr) => {
             match $value_one.checked_div($value_two) {
                 Some(val) => val,
-                None => return Err(MarketError::ArithemeticError)
+                None => return Err(MarketError::ArithemeticError.into())
             }
     };
 }

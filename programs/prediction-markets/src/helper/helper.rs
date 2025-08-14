@@ -1,7 +1,8 @@
 use anchor_lang::prelude::*;
-use rust_decimal::Decimal;
+use rust_decimal::{ Decimal, MathematicalOps };
+use crate::MarketError;
 
-use crate::Market;
+use crate::{ add_or_sub, decimal_convo, div, mul, Market };
 
 #[derive(InitSpace, AnchorDeserialize, AnchorSerialize, Clone, Copy)]
 pub enum MarketStatus {
@@ -61,9 +62,15 @@ impl Market {
     }
 
     // cost calculations
-    pub fn cost_calculation(&self, yes_shares : &Decimal, no_shares : &Decimal) -> Result<Decimal> {
-        // cost function = b.ln(e.pow(q1/b)) + e.pow(q2/b)   
+    pub fn cost_calculation(&self, yes_shares: &Decimal, no_shares: &Decimal) -> Result<Decimal> {
+        // cost function = b.ln(e.pow(q1/b)) + e.pow(q2/b)
 
-        
+        let outcome_yes = div!(yes_shares, decimal_convo!(self.lsmr_b)).exp(); // e.powf(q1/b)
+        let outcome_no = div!(no_shares, decimal_convo!(self.lsmr_b)).exp(); // e.powf(q2/b)
+        let outcome_sum = add_or_sub!(outcome_yes, outcome_no, true)?;
+
+        let cost = mul!(outcome_sum.ln(), decimal_convo!(self.lsmr_b));
+
+        Ok(cost)
     }
 }
