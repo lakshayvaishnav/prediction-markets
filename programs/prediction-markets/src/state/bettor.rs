@@ -6,7 +6,7 @@ pub struct Bettor {
     pub bettor_pubkey: Pubkey,
 
     #[max_len(50)]
-    pub bettor_name: String,
+    pub bettor_name: Option<String>,
 
     pub bettor_net_profit: i64, // might be in loss or profit
     pub balance: u64,
