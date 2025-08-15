@@ -163,9 +163,16 @@ impl<'info> BuyShares<'info> {
                 };
 
                 // left todo
+                self.deposit_wager(share_cost)?;
+                self.send_shares(shares_amount, is_yes)?;
+                self.update_all_state(shares_amount, share_cost, is_yes)?;
+            }
+
+            crate::MarketStatus::Resolved => {
+                return Err(error!(MarketError::MarketGotResolved));
             }
         }
-        todo!()
+        Ok(())
     }
 
     fn deposit_wager(&mut self, amount: u64) -> Result<()> {
@@ -228,6 +235,36 @@ impl<'info> BuyShares<'info> {
         );
 
         mint_to_checked(ctx, share_amount, mint.decimals)?;
+
+        Ok(())
+    }
+
+    fn update_all_state(&mut self, share_amount: u64, bet_amount: u64, is_yes: bool) -> Result<()> {
+        // update after transferring shares to bettor pubkey
+
+        if is_yes {
+            // update the bet account
+            self.wager_account.yes_shares = self.wager_account.yes_shares
+                .checked_add(share_amount)
+                .ok_or(MarketError::ArithemeticOverflow)?;
+
+            // update the market account
+            self.market.outcome_yes_shares = self.market.outcome_yes_shares
+                .checked_add(share_amount)
+                .ok_or(MarketError::ArithemeticOverflow)?;
+        } else {
+            self.wager_account.no_shares = self.wager_account.no_shares
+                .checked_add(share_amount)
+                .ok_or(MarketError::ArithemeticOverflow)?;
+
+            self.market.outcome_no_shares = self.market.outcome_no_shares
+                .checked_add(share_amount)
+                .ok_or(MarketError::ArithemeticOverflow)?;
+        }
+
+        self.wager_account.bet_amount_spent = self.wager_account.bet_amount_spent
+            .checked_add(bet_amount)
+            .ok_or(MarketError::ArithemeticOverflow)?;
 
         Ok(())
     }

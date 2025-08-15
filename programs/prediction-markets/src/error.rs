@@ -38,6 +38,8 @@ pub enum MarketError {
     MaxLength,
     #[msg("not enough amount")]
     NotEnoughAmount,
-   #[msg("Invalid Acccount")] 
-   InvalidAccount
+    #[msg("Invalid Acccount")]
+    InvalidAccount,
+    #[msg("Market already got resolved ")]
+    MarketGotResolved,
 }
