@@ -4,7 +4,11 @@ pub mod create_market;
 pub mod buy_shares;
 pub mod sell_shares;
 pub mod resolve;
+pub mod bettor_withdraw;
+pub mod admin_withdraw;
 
+pub use admin_withdraw::*;
+pub use bettor_withdraw::*;
 pub use resolve::*;
 pub use sell_shares::*;
 pub use buy_shares::*;
