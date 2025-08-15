@@ -42,4 +42,6 @@ pub enum MarketError {
     InvalidAccount,
     #[msg("Market already got resolved ")]
     MarketGotResolved,
+    #[msg("Market not resolved")]
+    MarketNotResolved
 }
