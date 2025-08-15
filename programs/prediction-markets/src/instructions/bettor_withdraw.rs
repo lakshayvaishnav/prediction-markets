@@ -1,5 +1,7 @@
 use anchor_lang::{ prelude::*, system_program::{ Transfer, transfer } };
 
+
+
 use crate::{
     check_ban,
     Bettor,
@@ -13,6 +15,8 @@ use crate::{
     PLATFORM_CONFIG,
     WAGER,
 };
+
+use MarketError::*;
 
 #[derive(Accounts)]
 pub struct BettorWithdraw<'info> {
